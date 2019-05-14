@@ -1,3 +1,9 @@
+# Robin
+.Rproj.user
+*.Rproj
+.DS_Store
+ignore_folder/
+
 # History files
 .Rhistory
 .Rapp.history
