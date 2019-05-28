@@ -1,0 +1,10 @@
+obs_id,observation ID of tide pool
+pool_area_cm2,pool surface area in cm^2
+pool_area_m2,pool surface area in m^2
+connectivity,"(1/average_distance), or inverse of average distance from focal pool to all other pools in sample"
+average_distance,average distance from pool of interest to all other pools in sample set
+tidal_height,"z value from total station, or distance from MLLW"
+disperal,calculated metric that takes into account surface areas of receiving/dispersing pools and connectivity metric
+species_count,number of species present 
+N,north coordinate from total station
+E,east coordinate from total station
