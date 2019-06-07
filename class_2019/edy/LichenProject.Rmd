@@ -1,0 +1,144 @@
+---
+title: "Lichen Research"
+author: "Lucy Edy"
+date: "5/20/2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+lichen<- read.csv("Lichen.csv")
+head(lichen)
+
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+```
+
+```{r}
+Dat1 <- subset(lichen, select = c(Sample, Species, Treatment, Day, R2ETRm, R2A))
+Dat1$Day <- as.character(Dat1$Day)
+Dat1$Day <- factor(Dat1$Day, levels = c("0", "6", "10", "15"))
+
+
+C.Coralloides <- filter(Dat1, Species == "Yellow")
+C.Sp <- filter(Dat1, Species == "Red")
+GreenLichen <- filter(Dat1, Species == "Green")
+
+
+
+DatA <- subset(lichen, select = c(Sample, Species, Treatment, Day, R1ETRm, R1Fit))
+DatA$Day <- as.character(DatA$Day)
+DatA$Day <- factor(DatA$Day, levels = c("0", "6", "10", "15"))
+
+R1 <- filter(DatA, R1Fit == "1")
+Cc1 <- filter(R1, Species == "Yellow")
+
+
+
+```
+
+```{r}
+#Caloplaca coralloides scaled by log10
+
+C.Coralloides <- C.Coralloides %>% 
+  mutate(ETR_log = log(R2ETRm))
+C.Coralloides_summary <- C.Coralloides %>%
+  group_by(Treatment, Day) %>%
+  summarize(Mean_ETR_log10 = mean(ETR_log),
+            n = n(),
+            sd = sd(ETR_log),
+            se = sd/sqrt(n))
+dodge <- position_dodge(width = 0.5)
+ggplot(C.Coralloides_summary, aes(Day, Mean_ETR_log10)) + geom_point(data = C.Coralloides_summary, aes(x = Day, y = Mean_ETR_log10, colour = Treatment), position = dodge) + geom_errorbar(aes(ymin = Mean_ETR_log10-se, ymax = Mean_ETR_log10+se, colour = Treatment), position = dodge, width = 0.2) + ggtitle("Caloplaca coralloides Electron Transport Rates")
+
+aovcc <- aov(ETR_log ~ Day*Treatment , data = C.Coralloides)
+summary(aovcc)
+sscc <- summary(aovcc)[[1]]$"Sum Sq"
+ss_totalcc <- sum(sscc)
+ss_groupscc <- sscc[1]
+r2cc <- ss_groupscc/ss_totalcc
+r2cc
+mscc <- summary(aovcc)[[1]]$"Mean Sq"
+#reject null!
+se_pooledcc <- sqrt(mscc[2] * (1/C.Coralloides_summary$n[3] + 1/C.Coralloides_summary$n[1]))
+x_diffcc <- C.Coralloides_summary$Mean_ETR_log10[3] - C.Coralloides_summary$Mean_ETR_log10[1]
+Ncc <- dim(C.Coralloides)[1]; kcc <- length(unique(C.Coralloides$Day))
+t_valuecc <- x_diffcc / se_pooledcc; t_valuecc
+pt(q = t_valuecc, df = Ncc - kcc, lower.tail = FALSE)
+#no significant effect of treatment. significant effect of day. no interaction between.
+```
+```{r}
+
+C.Sp <- C.Sp %>% 
+  mutate(ETR_log = log(R2ETRm))
+C.Sp_summary <- C.Sp %>%
+  group_by(Treatment, Day) %>%
+  summarize(Mean_ETR_log10 = mean(ETR_log),
+            n = n(),
+            sd = sd(ETR_log),
+            se = sd/sqrt(n))
+ggplot(C.Sp_summary, aes(Day, Mean_ETR_log10)) + geom_point(data = C.Sp_summary, aes(x = Day, y = Mean_ETR_log10, colour = Treatment), position = dodge) + geom_errorbar(aes(ymin = Mean_ETR_log10-se, ymax = Mean_ETR_log10+se, colour = Treatment), position = dodge, width = 0.2) + ggtitle("Caloplaca sp. Electron Transport Rates")
+dodge <- position_dodge(width = 0.5)
+
+aovcs <- aov(ETR_log ~ Day*Treatment , data = C.Sp)
+summary(aovcs)
+sscs <- summary(aovcs)[[1]]$"Sum Sq"
+ss_totalcs <- sum(sscs)
+ss_groupscs <- sscs[1]
+r2cs <- ss_groupscs/ss_totalcs
+r2cs
+mscs <- summary(aovcs)[[1]]$"Mean Sq"
+#reject null!
+se_pooledcs <- sqrt(mscs[2] * (1/C.Sp_summary$n[3] + 1/C.Sp_summary$n[1]))
+x_diffcs <- C.Sp_summary$Mean_ETR_log10[3] - C.Sp_summary$Mean_ETR_log10[1]
+Ncs <- dim(C.Sp)[1]; kcs <- length(unique(C.Sp$Day))
+t_valuecs <- x_diffcs / se_pooledcs; t_valuecs
+pt(q = t_valuecs, df = Ncs - kcs, lower.tail = FALSE)
+#no effect treatment (but moreso than C.c), effect day, no int.
+```
+```{r}
+GreenLichen <- GreenLichen %>% 
+  mutate(ETR_log = log(R2ETRm))
+GreenLichen_summary <- GreenLichen %>%
+  group_by(Treatment, Day) %>%
+  summarize(Mean_ETR_log10 = mean(ETR_log),
+            n = n(),
+            sd = sd(ETR_log),
+            se = sd/sqrt(n))
+dodge <- position_dodge(width = 0.5)
+ggplot(GreenLichen_summary, aes(Day, Mean_ETR_log10)) + geom_point(data = GreenLichen_summary, aes(x = Day, y = Mean_ETR_log10, colour = Treatment), position = dodge) + geom_errorbar(aes(ymin = Mean_ETR_log10-se, ymax = Mean_ETR_log10+se, colour = Treatment), position = dodge, width = 0.2) + ggtitle("Unidentified Green Lichen Electron Transport Rates")
+
+aovgl <- aov(ETR_log ~ Day*Treatment , data = GreenLichen)
+summary(aovcs)
+ssgl <- summary(aovgl)[[1]]$"Sum Sq"
+ss_totalgl <- sum(ssgl)
+ss_groupsgl <- ssgl[1]
+r2gl <- ss_groupsgl/ss_totalgl
+r2gl
+msgl <- summary(aovgl)[[1]]$"Mean Sq"
+#reject null!
+se_pooledgl <- sqrt(msgl[2] * (1/GreenLichen_summary$n[3] + 1/GreenLichen_summary$n[1]))
+x_diffgl <- GreenLichen_summary$Mean_ETR_log10[3] - GreenLichen_summary$Mean_ETR_log10[1]
+Ngl <- dim(GreenLichen)[1]; kgl <- length(unique(GreenLichen$Day))
+t_valuegl <- x_diffgl / se_pooledgl; t_valuegl
+pt(q = t_valuegl, df = Ngl - kgl, lower.tail = FALSE)
+
+#same result
+```
+
+
+
+```{r}
+aov1 <- aov(R2ETRm ~ Day_Char, data = Dat1)
+summary(aov1)
+
+TukeyHSD(aov1)
+#ok...so no difference across days
+
+aovY <- aov(ETR_log ~ Day_Char, data = C.Coralloides)
+summary(aovY)
+
+TukeyHSD(aovY)
+```

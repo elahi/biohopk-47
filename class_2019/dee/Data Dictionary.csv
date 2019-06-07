@@ -1,0 +1,9 @@
+Definitions,
+PAR Value,Value gathered using a PAR sensing device 
+Solar Irradiance,The solar irradiance associated with the specific PAR value  (PAR*2)
+UV Light Value,The UV light recieved by each anemone (Solar irradiance*0.08)
+Quadrat #,The quadrat that each anemone belongs to 
+Percent Before,Shell cover in percent on each individual anemone before treatment was added
+Percent After,Shell cover in percent on each individual anemone after treatment was added
+Percent Change,(Percent Before- Percent After)/Percent Before
+Treatment ,"a = treatment, b= control"

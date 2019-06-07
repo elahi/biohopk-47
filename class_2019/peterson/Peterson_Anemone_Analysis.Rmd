@@ -1,0 +1,435 @@
+---
+title: "anemone_logtransform"
+author: "Nana Ansuah Peterson"
+date: "June 4, 2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Question: Could suction be the mechanism of attachment of fragments to anemones?
+
+
+How suction forces are created in marine invertebrates
+
+Muscles contract to create a region of lower pressure between the fragment and the organism's body, relative to the surrounding/ ambient pressure. The pressure differential across the attached substrate (higher ambient pressure on unattached area and lower pressure on attached area) creates an attachment force acting on the substrate. Attachment force per unit area it acts on is defined as tenacity. On the assumption that negative pressures are not created in suction, tenacity values equal to or greater than atmospheric pressure are thought to be evidence against suction mechanisms (Smith, 1991). 
+
+
+Aim of field experiment: Calculate attachment force per area of attached fragment (tenacity values). Compare tenacity values to atmospheric pressure.
+If tenacity values < atmospheric pressure, it could be suction.
+
+
+
+
+Lab experiments:
+Suction requires muscle contraction (in this case) so if muscles are relaxed/ unable to contract, there should be no attachment by suction.
+
+
+When muscles are unable to contract, lower pressure regions cannot be created and there will be no pressure differential created. No pressure differential means no (0) attachment force and thus zero tenacity. If suction is indeed mechanism of attachment, then under muscle-relaxed conditions, fragment will no longer be attached to the anemone (tenacity=0).
+
+
+Aim of lab experiments: Induce muscle-relaxation in anemones (with MgCl2 solution) and calculate attachment force per area of attached fragment (tenacity). Compare tenacity values to zero. Compare muscle-relaxed tenacity values to untreated anemone tenacity values. 
+If tenacity values are zero for treated,  but atmospheric pressure > untreated anemone-tenacity values >0, it could be suction.
+
+
+
+
+
+
+
+
+
+
+
+
+Inserting data
+
+
+```{r inserting data }
+library(readr)
+anemone_data <- read.csv("anemone_shell_data.csv")
+anemone_data$log_tenacity <- log(anemone_data$tenacity_Pa +1)
+lab_data <- read.csv("lab_anemones.csv")
+lab_data$log_tenacity <- log(lab_data$tenacity_Pa +1)
+```
+
+
+
+
+Loading packages
+
+
+```{r packages}
+library(tidyverse)
+library(viridis)
+```
+
+
+
+
+
+
+
+
+
+
+Distribution of attachment force by anemone size
+
+
+```{r distribution of forces by anemone size}
+e <- ggplot(data= anemone_data, mapping= aes(x= anemone_diameter_m, y= force_N, fill= anemone_ID ))+
+  geom_boxplot()
+e+scale_fill_viridis(discrete= TRUE, option = "D")+
+  theme_bw()+
+  labs(title ="Distribution of force required to pull off attached fragments by anemone size", x="Anemone diameter (m)",  y= "Force (N)")
+ggsave("force_by_anemonesize.png", width= 10, height = 5)
+```
+
+
+
+Distribution of tenacity by anemone ID (colored by size)
+
+
+```{r distribution of tenacity by anemone size}
+f <- ggplot(data= anemone_data, mapping= aes(x= anemone_ID, y= tenacity_Pa, fill= anemone_diameter_mm ))+
+  geom_boxplot()
+  
+f+scale_fill_viridis(discrete= FALSE, option = "D")+
+  theme_bw()+
+  labs(title ="Distribution of log(Tenacity) per Anemone", x="Anemone ID",  y= "log(Tenacity")+
+geom_hline(aes(yintercept= log(100900+1), linetype= "100900Pa"), size=0.75, show.legend=TRUE)+
+  scale_linetype_manual( name= "Atmospheric Pressure", values= c(2))
+ggsave("tenacity_byIDline.png", width= 10, height = 5)
+```
+
+
+
+
+Distribution of log(tenacity) by anemone ID (colored by size)
+
+
+```{r distribution of log(tenacity) by anemone size}
+logf <- ggplot(data= anemone_data, mapping= aes(x= anemone_ID, y= log_tenacity, fill= anemone_diameter_mm ))+
+  geom_boxplot()
+  
+logf+scale_fill_viridis(discrete= FALSE, option = "D")+
+  theme_bw()+
+  labs(title ="Distribution of log(tenacities) per Anemone", x="Anemone ID",  y= "log(Tenacity)", fill= "Anemone Diameter (mm)")+
+geom_hline(aes(yintercept= log(100900+1), linetype= "log(100900+1)"), size=0.75, show.legend=TRUE)+
+  scale_linetype_manual( name= "Atmospheric Pressure", values= c(2))+ 
+  theme(legend.position="bottom")
+ggsave("log_tenacity_field.png", width= 10, height = 5)
+```
+
+
+#Statistical analysis on field data
+
+
+Question: Could suction be the mechanism of attachment of fragments to anemones?
+
+
+On the assumption that negative pressures are not created in suction, tenacity values greater than atmospheric pressure are thought to be evidence against suction mechanisms (Smith, 1991).
+
+
+Sub-question: Is the average tenacity of fragment attachment to anemones less than atmospheric pressure? If yes- suction is feasible, if no suction is not feasible
+
+
+Source: https://www.cencoos.org/data/shore/mba
+
+
+Air pressure for day of collection 05/09 halfway through sampling- 1009mb
+
+
+Null hypothesis: Average tenacity of fragment attachment to anemone= atmospheric pressure (suction- not feasible)= 100900Pa
+
+
+Alternate hypothesis: Average pressure exerted on shell by anemone is less than atmospheric pressure (suction- feasible)
+
+
+Analysis- One-tailed student's t-test
+
+
+Assumptions for analysis
+
+
+Tenacity distribution for experimental groups
+
+
+
+```{r}
+hist(x= anemone_data$tenacity_Pa, xlab = "tenacity", main= "Distribution of tenacity ")
+hist(x=anemone_data$log_tenacity, xlab = "log (tenacity)", main= "Distribution of log(tenacity) ")
+hist(x= lab_data$log_tenacity[which(lab_data$exp_treatment== "treatment")], xlab = "tenacity", main= "Distribution of tenacity ")
+hist(x=lab_data$log_tenacity[which(lab_data$exp_treatment== "control")], xlab = "log (tenacity)", main= "Distribution of log(tenacity) ")
+```
+
+
+Tenacity values are not normally distributed. The distribution of the log transformed data (tenacity) is found to be closer to normal distribution and thus all data analysis is preformed on the log transformed data and the relevant summary statistics are backtransformed into tenacity values.
+
+
+
+Field data t-test
+
+
+```{r t test}
+anemone_summary <- anemone_data %>%
+  summarise(average_log_tenacity = mean(log_tenacity), var_log_tenacity= var(log_tenacity), n= n(), se_log_tenacity= (sqrt(var_log_tenacity)/sqrt(n)), sd_log_tenacity= sqrt(var_log_tenacity))
+anemone_summary$log_atmos_pressure <- log(100900+1)
+anemone_summary$df_log_tenacity<- anemone_summary$n-1
+anemone_summary$t_log_tenacity <- (anemone_summary$average_log_tenacity- anemone_summary$log_atmos_pressure)/anemone_summary$se_log_tenacity
+anemone_summary$p_value <- pt(anemone_summary$t_log_tenacity, df= anemone_summary$df_log_tenacity, lower.tail=  TRUE)
+anemone_summary$critical_val <- abs(qt(0.05/2, 39))
+anemone_summary$lower_CI_log <- anemone_summary$average_log_tenacity - anemone_summary$critical_val*anemone_summary$se_log_tenacity
+anemone_summary$upper_CI_log <- anemone_summary$average_log_tenacity + anemone_summary$critical_val*anemone_summary$se_log_tenacity
+anemone_summary$average_tenacity <- exp(anemone_summary$average_log_tenacity)-1
+anemone_summary$sd_tenacity <- exp(anemone_summary$sd_log_tenacity)-1
+anemone_summary$lower_CI <- exp(anemone_summary$lower_CI_log)-1
+anemone_summary$upper_CI <- exp(anemone_summary$upper_CI_log)-1
+
+
+
+t.test(x=anemone_data$log_tenacity, alternative = "less", mu= log(100900 +1), paired=FALSE)
+
+t.test(x=anemone_data$log_tenacity, alternative = "two.sided", mu= log(100900+1), paired=FALSE)
+```
+
+
+p-value () <<< 0.05, reject null hypothesis. The data provide strong evidence that the average tenacity of attachment of fragments to anemones is less than 100900Pa, atmospheric pressure. Suction is feasible (it could be suction).
+
+
+
+
+
+#Sample sizes
+
+
+Estimated smple size for field experiment (calculated after the fact)
+
+```{r calcuted sample size to detect difference at power .8, significance level 0.05}
+field_samp <- 8*((anemone_summary$var(tenacity_Pa))/(anemone_summary$100900)^2)
+field_samp
+```
+
+
+
+
+mean value of tenacity for MgCl2 treated= 0
+mean value for control= mean value of pressure calculated from data
+```{r}
+lab_samp <- 16*((anemone_summary$var(tenacity_Pa))/(0 -mean(tenacity))^2)
+lab_samp
+```
+I need at least 7 anemones for control, 7 anemones for treatment if 5 obs. per sample
+
+
+
+
+
+
+#Lab Data
+
+
+Question: Could suction be the mechanism of attachment of fragments to anemones?
+
+
+
+
+Subsetting lab data into treatment vs. control groups
+
+
+```{r subsetting}
+
+lab_exp <-subset(lab_data, lab_data$exp_treatment=="treatment")
+lab_con <- subset(lab_data, lab_data$exp_treatment=="control")
+
+```
+
+
+
+Distribution of tenacity by anemone size for treatment group.
+
+
+```{r distribution of tenacity by anemone size treatment}
+f_exp <- ggplot(data= lab_exp, mapping= aes(x=anemone_diameter_mm, y= log_tenacity, fill=anemone_ID))+
+  geom_boxplot()
+
+  
+f_exp+scale_fill_viridis(discrete= TRUE, option = "D")+
+  theme_bw()+
+  labs(title ="Distribution of Calculated Pressure Values by Anemone Size (Treatment group)", x="Anemone diameter (mm)",  y= "Pressure (Pa)")+
+geom_hline(aes(yintercept= 100900, linetype= "100900Pa"), size=0.75, show.legend=TRUE)+
+  scale_linetype_manual( name= "Atmospheric Pressure", values= c(2))
+ggsave("pressure_bysizeline.png", width= 10, height = 5)
+```
+
+
+
+
+Distribution of tenacity by anemone size for control group.
+
+
+```{r distribution of pressure by anemone size control}
+f_con <- ggplot(data= lab_con, mapping= aes(x=anemone_diameter_mm, y= log_tenacity, fill=anemone_ID))+
+  geom_boxplot()
+
+  
+f_con+scale_fill_viridis(discrete= TRUE, option = "D")+
+  theme_bw()+
+  labs(title ="Distribution of Calculated Pressure Values by Anemone Size (Treatment group)", x="Anemone diameter (mm)",  y= "Pressure (Pa)")+
+geom_hline(aes(yintercept= 100900, linetype= "100900Pa"), size=0.75, show.legend=TRUE)+
+  scale_linetype_manual( name= "Atmospheric Pressure", values= c(2))
+ggsave("pressure_bysizeline.png", width= 10, height = 5)
+```
+
+
+
+
+Distribution of log(tenacity) values by anemone ID for both control and MgCL2-treated groups. Coloured by size
+
+
+```{r distribution of pressure by anemone size treatment}
+logf_lab <- ggplot(data= lab_data, mapping= aes(x= anemone_ID, y= log_tenacity, fill= anemone_diameter_mm), position = position_dodge2(preserve = "total"))+
+  geom_boxplot()
+lab_data$treatment <- ifelse(lab_data$exp_treatment=="control", "Control", "MgCl2-treated")
+
+logf_lab+ facet_grid(.~lab_data$treatment)+
+  theme(strip.text.x = element_text(size = 20, color= "red"))+
+  scale_fill_viridis(discrete= FALSE, option = "D")+
+  theme_bw()+
+  labs(title ="Distribution of log(Tenacity) Values per Anemone", x="Anemone ID",  y= "log(Tenacity)", fill="Anemone Diameter (mm)")+
+geom_hline(aes(yintercept= log(100900+1), linetype= "log(Atmospheric Pressure + 1 )"), size=0.75, color= "black", show.legend=TRUE)+
+  geom_hline(aes(yintercept= log(1),  linetype= "log(Zero Tenacity + 1 )"), size=0.75, color= "black", show.legend=TRUE)+
+  scale_linetype_manual( name= "Relevant log-transformed Values", values= c(1, 2))
+  
+
+ggsave("log_tenacity_by_ID_lab.png", width= 10, height = 5)
+
+```
+
+
+
+
+
+Lab experiments:
+Suction requires muscle contraction (in this case) so if muscles are relaxed/ unable to contract, there should be no attachment by suction.
+
+
+When muscles are unable to contract, lower pressure regions cannot be created and there will be no pressure differential created. No pressure differential means no (0) attachment force and thus zero tenacity. If suction is indeed mechanism of attachment, then under muscle-relaxed conditions, fragment will no longer be attached to the anemone (tenacity=0).
+
+
+Aim of lab experiments: Induce muscle-relaxation in anemones (with MgCl2 solution) and calculate attachment force per area of attached fragment (tenacity). Compare tenacity values to zero. Compare muscle-relaxed tenacity values to untreated anemone tenacity values. 
+If tenacity values are zero for treated,  but atmospheric pressure > untreated anemone-tenacity values >0, it could be suction.
+
+
+Sub-question: Is the average tenacity value for MgCl2 =0? **To avoid null hypothesis being the hypothesis that supports suction, question= is the difference between tenacity values for MgCl2 treated anemones and atmospheric pressure= atmospheric pressure? 
+
+If tenacity= 0, Atmospheric pressure- tenacity= Atmospheric pressure**
+
+
+Null hypothesis?: Average tenacity value for MgCl2 treated= 0
+
+
+Alternative hypothesis: Average tenacity values for MgCl2 treated > 0
+
+
+Analysis- one-tailed student's t-test
+
+
+```{r t test treatment group}
+exp_anemone_summary <- lab_exp %>%
+  summarise(average_log_tenacity = mean(log_tenacity), var_log_tenacity= var(log_tenacity), n= n(), se_log_tenacity= (sqrt(var_log_tenacity)/sqrt(n)))
+exp_anemone_summary$expected_log_tenacity <- log(0+1)
+exp_anemone_summary$df_log_tenacity<- exp_anemone_summary$n-1
+exp_anemone_summary$t_log_tenacity <- (exp_anemone_summary$average_log_tenacity- exp_anemone_summary$expected_log_tenacity)/exp_anemone_summary$se_log_tenacity
+exp_anemone_summary$p_value <- pt(exp_anemone_summary$t_log_tenacity, df= exp_anemone_summary$df_log_tenacity, lower.tail=  FALSE)
+exp_anemone_summary$critical_val <- abs(qt(0.05/2, 39))
+exp_summary<- exp_anemone_summary %>%
+  mutate(lower_CI_log = average_log_tenacity - critical_val*se_log_tenacity, upper_CI_log = average_log_tenacity + critical_val*se_log_tenacity, average_tenacity = exp(average_log_tenacity)-1, lower_CI = exp(lower_CI_log)-1, upper_CI = exp(upper_CI_log)-1)
+
+
+
+t.test(x=lab_exp$log_tenacity, alternative = "greater", mu= log(0+1), paired=FALSE)
+t.test(x=lab_exp$log_tenacity, alternative = "two.sided", mu= log(0+1), paired=FALSE)
+
+```
+
+
+
+
+
+
+
+Sub-question- Is the average tenacity of fragment attachment to anemones less than atmospheric pressure for control anemones?
+
+
+Null hypothesis: Average tenacity of fragment attachment to anemone= atmospheric pressure (suction- not feasible)= 100900Pa
+
+
+Alternate hypothesis: Average pressure exerted on shell by anemone is less than atmospheric pressure (suction- feasible)
+
+
+Analysis- One-tailed student's t-test
+
+
+```{r t test control}
+con_anemone_summary <- lab_con %>%
+  summarise(average_log_tenacity = mean(log_tenacity), var_log_tenacity= var(log_tenacity), n= n(), se_log_tenacity= (sqrt(var_log_tenacity)/sqrt(n)))
+con_anemone_summary$log_atmos_pressure <- log(100900+1)
+con_anemone_summary$df_log_tenacity<- con_anemone_summary$n-1
+con_anemone_summary$t_log_tenacity <- (con_anemone_summary$average_log_tenacity- con_anemone_summary$log_atmos_pressure)/con_anemone_summary$se_log_tenacity
+con_anemone_summary$p_value <- pt(con_anemone_summary$t_log_tenacity, df= con_anemone_summary$df_log_tenacity, lower.tail=  TRUE)
+con_anemone_summary$critical_val <- abs(qt(0.05/2, 29))
+con_summary<- con_anemone_summary %>%
+  mutate(lower_CI_log = average_log_tenacity - critical_val*se_log_tenacity, upper_CI_log = average_log_tenacity + critical_val*se_log_tenacity, average_tenacity = exp(average_log_tenacity)-1, lower_CI = exp(lower_CI_log)-1, upper_CI = exp(upper_CI_log)-1)
+
+
+
+t.test(x=lab_con$log_tenacity, alternative = "less", mu= log(100900+1), paired=FALSE)
+t.test(x=lab_con$log_tenacity, alternative = "two.sided", mu= log(100900+1), paired=FALSE)
+```
+
+
+
+
+
+Sub-question: Is there a difference between tenacity values for MgCl2 treated versus untreated anemones?
+
+
+Null hypothesis- The average tenacity values for MgCl2 treated and untreated anemones is the same.
+
+
+Alternative hypothesis- The average tenacity values for MgCl2 treated and untreated anemones differ by treatment
+
+
+
+
+
+Nested ANOVA
+
+
+```{r}
+nested_a <- aov(log_tenacity ~ exp_treatment + Error(anemone_ID), data= lab_data)
+tidy_a <- tidy(nested_a)%>%
+  mutate(f= meansq/(lead(meansq)),
+         p= pf(q=f, df1=df, df2=lead(df), lower.tail=FALSE))
+tidy_a
+
+
+```
+
+
+
+
+```{r}
+lab_data$log_tenacity <-lab_data$log_tenacity
+lognested_a <- aov(log_tenacity ~ exp_treatment + Error(anemone_ID), data= lab_data)
+
+logtidy_a <- tidy(lognested_a)%>%
+  mutate(f= meansq/(lead(meansq)),
+         p= pf(q=f, df1=df, df2=lead(df), lower.tail=FALSE))
+logtidy_a
+```
+

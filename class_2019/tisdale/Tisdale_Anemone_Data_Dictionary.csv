@@ -1,0 +1,7 @@
+﻿Name,Description 
+ID #,"The letter ""E"" corresponds to anemones observed in the sun exposed site. The letter ""S"" corresponds to anemones observed in the shaded site. 
+The number serves as an identification "
+Size_cm,Size of diameter in centimeters
+Date,Date of observation in  m/dd/yy
+n_zoox,Number of zooxanthellae cells in observation
+n_zooch,Number of zoochlorellae cells in observation

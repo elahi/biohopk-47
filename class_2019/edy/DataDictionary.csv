@@ -1,0 +1,10 @@
+﻿Variable,Definition
+Sample,Unique numerical identifier for each sample 1-27
+Species,"Morphological type. ""Yellow"" = C. coralloides, ""Red"" = C. sp., and ""Green"" = unidentified green crustose lichen"
+Treatment,"Treatment type. Each sample was sprayed 10x with a small spray bottle, either with ""S"" = just saltwater, ""F"" = just deionized water, or ""A"" = alternating salt/freshwater daily"
+Day,Number of days since start of treatment. Mini-PAM was used to measure ETR about every five days. 
+R1A,Alpha value for the first regression on the light curve in the mini-PAM. Missing values indicate mini-PAM could not fit the first regression.
+R1B,Beta value for the first regression on the light curve in the mini-PAM. Negative values indicate mini-PAM could not fit the first regression.
+R1ETRm,Electron Transport Rate for the first regression on mini-PAM light curve. Missing values inidcate mini-PAM could not fit the first regression.
+R2A,Alpha value for the second regression on the light curve in the mini-PAM.
+R2ETRm,Electron Transport Rate for the second regression on mini-PAM light curve.

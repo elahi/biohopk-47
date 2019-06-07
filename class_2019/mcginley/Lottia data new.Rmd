@@ -1,0 +1,92 @@
+---
+title: "Untitled"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library (PairedData)
+library (tidyverse)
+library (ggpubr)
+library (afex)
+library (reshape2)
+library (dplyr)
+```
+
+```{r}
+help ("read.csv")
+dat <- read.csv (file.choose(), header= TRUE)
+dat
+```
+
+```{r}
+dat$Site <- dat$ï..Site
+dat$Site_char <- as.character(dat$Site)
+dat$Site_char
+dat$Session <- dat$Session
+dat$Session_char <- as.character(dat$Session)
+dat$Session_char
+
+dat$Day <-  paste ("Day", dat$Session_char, sep=" ")
+dat$Day
+dat$SiteID <- paste ("Site", dat$Site_char, sep=" ")
+dat$SiteID
+
+
+str (dat)
+
+dat %>%
+  ggplot (aes(x=Treatment, y=TempC,
+              shape= Pair, group= Pair)) +
+  scale_shape_identity()+
+  geom_point () + geom_path() + 
+  facet_grid(SiteID ~ Day) 
+
+  summary (dat)
+
+
+
+```
+
+```{r}
+library(dplyr)
+
+lot.dat <- dat %>%
+  group_by(Treatment, Pair, Day, SiteID, AirTemp, Solar, Wind) %>%
+  summarise(TempC=mean(TempC))
+lot.dat
+
+
+
+data_wide <- spread(lot.dat, Treatment, TempC)
+data_wide
+
+data_wide$diff <- with(data_wide, data_wide$Algae - data_wide$Bare)
+data_wide$diff
+
+xbar_diff <- mean (data_wide$diff)
+xbar_diff #.3833333
+var_diff <- var(data_wide$diff)
+var_diff # .2041243
+
+t_value<-xbar_diff/sqrt(var_diff/3) #1.469569
+t_value
+
+2 * pt(q=t_value, df=2, lower.tail = FALSE) #.2794528
+pt(q=t_value, df=2, lower.tail = FALSE)
+
+aov1 <- aov (data_wide$diff ~ data_wide$SiteID + data_wide$Day)
+aov1
+aov2 <- aov (data_wide$diff ~  data_wide$SiteID + data_wide$AirTemp + data_wide$Solar + data_wide$Wind)
+aov2
+
+summary (aov1)
+summary (aov2)
+
+tshd <- TukeyHSD(aov1)
+tshd
+
+        
+```
